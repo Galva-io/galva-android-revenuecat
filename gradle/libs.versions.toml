@@ -1,0 +1,25 @@
+[versions]
+# Same AGP and Kotlin as galva-android: the composite build loads both builds' plugins together.
+agp = "9.0.0"
+kotlin = "2.2.10"
+galva = "1.2.0-SNAPSHOT"
+# Floor: 10.0.0 is the first RevenueCat release on Play Billing 8, which Galva requires.
+revenuecat = "10.0.0"
+kotlinxCoroutines = "1.11.0"
+lifecycle = "2.9.4"
+junit = "4.13.2"
+robolectric = "4.16.1"
+mockito = "6.3.0"
+
+[libraries]
+galva-sdk = { group = "io.galva.sdk", name = "galva-sdk", version.ref = "galva" }
+revenuecat = { group = "com.revenuecat.purchases", name = "purchases", version.ref = "revenuecat" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
