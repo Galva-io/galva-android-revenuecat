@@ -1,6 +1,6 @@
 package io.galva.revenuecat
 
-import io.galva.core.protocol.identity.ProfileProperty
+import io.galva.sdk.ProfileProperty
 
 /**
  * What to do in Galva when RevenueCat's customer state changes, as plain logic with no side

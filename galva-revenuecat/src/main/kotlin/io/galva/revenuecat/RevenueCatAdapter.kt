@@ -94,8 +94,7 @@ internal class LiveRevenueCatAdapter : RevenueCatAdapter {
     }
 
     /**
-     * RevenueCat has a single `updatedCustomerInfoListener`, unlike the iOS stream. The
-     * integration chains onto it, so the app's own listener still receives every update, and
+     * RevenueCat has a single `updatedCustomerInfoListener` so the app's own listener still receives every update, and
      * re-attaches on [refresh] (app foreground) if the app set a new listener since.
      */
     override fun customerUpdates(refresh: Flow<Unit>): Flow<RevenueCatCustomer> = callbackFlow {

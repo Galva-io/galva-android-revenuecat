@@ -1,6 +1,6 @@
 package io.galva.revenuecat
 
-import io.galva.core.protocol.identity.ProfileProperty
+import io.galva.sdk.ProfileProperty
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Galva RevenueCat Demo</string>
+
+    <string name="section_identity">Identity (RevenueCat → Galva)</string>
+    <string name="section_purchases">Purchases (your own paywall)</string>
+    <string name="section_messages">Galva in-app messages</string>
+
+    <string name="hint_user_id">App user id</string>
+    <string name="action_rc_log_in">RevenueCat logIn</string>
+    <string name="action_rc_log_out">RevenueCat logOut</string>
+    <string name="action_load_offerings">Load RevenueCat offerings</string>
+    <string name="action_sync_purchases">RevenueCat syncPurchases</string>
+    <string name="action_check_messages">Check for Galva messages</string>
+    <string name="action_open_deep_link">Open sample Galva link</string>
+    <string name="action_buy">Buy %1$s (%2$s)</string>
+
+    <string name="status_format">Galva %1$s: %2$s\n  user %3$s (%4$s)\nRevenueCat %5$s: %6$s\n  user %7$s (%8$s)\n  entitlements %9$s</string>
+    <string name="status_configured">configured</string>
+    <string name="status_not_configured">not configured (add its key to local.properties)</string>
+    <string name="status_anonymous">anonymous</string>
+    <string name="status_identified">identified</string>
+    <string name="status_none">none</string>
+    <string name="status_dash">—</string>
+
+    <string name="toast_user_id_required">Enter an app user id first</string>
+    <string name="toast_revenuecat_missing">RevenueCat isn\'t configured: add REVENUECAT_API_KEY to local.properties</string>
+    <string name="toast_no_offerings">No current offering in RevenueCat</string>
+    <string name="toast_done">%1$s: done</string>
+    <string name="toast_failed">%1$s failed: %2$s</string>
+</resources>

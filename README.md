@@ -10,7 +10,7 @@ Galva.configure(this, Configuration(apiKey = "pk_your_app_id"), integrations = l
 - **Galva follows RevenueCat's identity.** `Purchases.logIn` and `logOut` identify and log out the Galva user too, so you don't call `Galva.instance.identify` yourself.
 - **Galva knows the RevenueCat customer.** The app user ID and active entitlements are kept as Galva attributes.
 
-> **Status: pre-release.** `settings.gradle.kts` builds `galva-sdk` from a sibling `../galva-android` checkout until galva-android ships the integrations API in a published release.
+> **Status: pre-release.** It needs galva-android's integrations API, which isn't in a published `galva-sdk` release yet. Until it is, build against a local galva-android (see [Development](#development)).
 
 ---
 
@@ -20,16 +20,40 @@ These steps assume you've registered your app in Galva and copied its App ID. Se
 
 ### 1. Add the dependency
 
-Add Galva's GitHub Packages repository as described in the installation guide, then:
+Add Galva's GitHub Packages repository as described in the installation guide, and this package's repository next to it, with the same credentials:
+
+```kotlin
+// settings.gradle.kts, in dependencyResolutionManagement.repositories
+maven {
+    url = uri("https://maven.pkg.github.com/Galva-io/galva-android-revenuecat")
+    credentials {
+        username = providers.gradleProperty("gpr.user").orNull
+        password = providers.gradleProperty("gpr.key").orNull
+    }
+}
+```
 
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("io.galva.sdk:galva-revenuecat:<version>")
+    implementation("io.galva.sdk:galva-revenuecat:<version>") // e.g. 1.0.0-SNAPSHOT
 }
 ```
 
-It brings in `galva-sdk` and RevenueCat's `purchases` (with its Google Play Billing Library). If your app already depends on RevenueCat, keep your version: Gradle uses the newer of the two.
+It brings in the `galva-sdk` release it was built for and RevenueCat `purchases` 10.x (with its Google Play Billing Library). If your app already uses RevenueCat, keep your dependency: a 10.x version is shared with the integration as is.
+
+| Your app's RevenueCat | Resolved |
+|---|---|
+| None | The latest 10.x |
+| 10.x, e.g. `10.2.0` | Your version, shared by your app and the integration |
+| 9.x or older | The latest 10.x: 10.0.0 is the first on Play Billing 8, which Galva requires |
+| 11.0.0 or newer | The build fails with "Cannot find a version of 'com.revenuecat.purchases:purchases' that satisfies the version constraints", rather than run the integration on a major it isn't built for |
+
+To use a version outside 10.x anyway, declare it strictly in your app. The integration isn't tested with it:
+
+```kotlin
+implementation("com.revenuecat.purchases:purchases") { version { strictly("11.0.0") } }
+```
 
 ### 2. Configure
 
@@ -38,8 +62,8 @@ Configure RevenueCat, then pass `GalvaIntegration.revenueCat()` to Galva:
 ```kotlin
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
-import io.galva.core.protocol.Configuration
 import io.galva.revenuecat.revenueCat
+import io.galva.sdk.Configuration
 import io.galva.sdk.Galva
 import io.galva.sdk.GalvaIntegration
 
@@ -138,16 +162,78 @@ Its log lines go through Galva's logger with a `[revenuecat]` prefix, and follow
 | | |
 |---|---|
 | **Min SDK** | 24 (Android 7.0), as for Galva |
-| **RevenueCat** | `com.revenuecat.purchases:purchases` 10.0.0 or later (10.x): the first release on Play Billing 8, which Galva requires |
-| **Galva** | `io.galva.sdk:galva-sdk` with the integrations API |
+| **RevenueCat** | `com.revenuecat.purchases:purchases` 10.x (`strictly [10.0.0, 11.0.0)`): 10.0.0 is the first release on Play Billing 8, which Galva requires. Your app's own 10.x version is used as is. |
+| **Galva** | `io.galva.sdk:galva-sdk` at the exact version this release was built with (currently `1.3.0-SNAPSHOT`, the first with the integrations API) |
+
+## Demo app
+
+The [`app`](app) module is a control panel that wires RevenueCat and Galva together, as in [Configure](#2-configure). Use RevenueCat as an app would and watch Galva follow:
+
+| Try | You should see |
+|---|---|
+| **RevenueCat logIn** with an app user id | The status panel shows the Galva user switch to that id. Logcat (tag `Galva`): `[revenuecat] identifying Galva user from RevenueCat` |
+| **RevenueCat logOut** | Galva goes back to an anonymous user |
+| **Load RevenueCat offerings**, then **Buy** | A purchase from your own paywall: the active entitlements update, and Galva gets them as `$gv_rc_activeEntitlements` |
+| **Check for Galva messages** | A message Galva targets at this user; offers bought in it run through RevenueCat |
+| **Open sample Galva link** | A `gvrcdemo://openCommunication?…` link handed to `Galva.instance.handleOpenURL` |
+
+The app sets its own `UpdatedCustomerInfoListener` before Galva connects (the status panel uses it), which shows the integration chaining onto the app's listener rather than replacing it.
+
+To run it, add your keys to `local.properties` (git-ignored):
+
+```properties
+GALVA_API_KEY=pk_your_app_id
+REVENUECAT_API_KEY=goog_your_revenuecat_key
+```
+
+```bash
+./gradlew :app:installDebug
+```
+
+A missing key doesn't fail the build: the status panel shows which SDK isn't configured. The demo uses Galva's `Development` environment. Real purchases also need the app (`io.galva.revenuecat.demo`) in a Play Console track, a license tester account on the device, and the products set up in RevenueCat.
 
 ## Development
 
 ```bash
 ./gradlew :galva-revenuecat:testDebugUnitTest
+./gradlew :app:assembleDebug
 ```
 
-The build expects a `galva-android` checkout next to this one (see `settings.gradle.kts`) and the same Android Gradle Plugin and Kotlin versions, since the composite build loads both builds' plugins together.
+`galva-sdk` comes from Galva's GitHub Packages repository, which needs a GitHub username and a token with `read:packages`: set `gpr.user` and `gpr.key` in `~/.gradle/gradle.properties`, or `GPR_USER` and `GPR_KEY` in the environment. The version is pinned in `gradle/libs.versions.toml`.
+
+To build against a Galva change that isn't published yet, publish galva-android locally and pass `-Pgalva.mavenLocal`:
+
+```bash
+# in the galva-android checkout
+./gradlew publishToMavenLocal
+```
+
+```bash
+# here
+./gradlew -Pgalva.mavenLocal :galva-revenuecat:testDebugUnitTest
+```
+
+Android Studio's sync can't pass `-P` flags, so to keep Maven Local on for this checkout, including in the IDE, add this to `local.properties` (git-ignored):
+
+```properties
+galva.mavenLocal=true
+```
+
+Otherwise sync fails with `Failed to resolve: io.galva.sdk:galva-sdk:<version>` while that version isn't on GitHub Packages. The version in `libs.versions.toml` must match galva-android's `VERSION_NAME`. Without the flag or the property, the build never reads Maven Local.
+
+### Publish
+
+Both publish `io.galva.sdk:galva-revenuecat:<VERSION_NAME>` (from `gradle.properties`, currently `1.0.0-SNAPSHOT`) with its sources:
+
+```bash
+# To this repository's GitHub Packages; needs gpr.user / gpr.token with write:packages
+./gradlew :galva-revenuecat:publishReleasePublicationToGitHubPackagesRepository
+
+# To ~/.m2
+./gradlew :galva-revenuecat:publishToMavenLocal
+```
+
+Add `-Pgalva.mavenLocal` (or keep `galva.mavenLocal=true` in `local.properties`) while the pinned `galva-sdk` is only in Maven Local. To use a Maven Local build from an app, add `mavenLocal()` to the app's repositories, as in galva-android's [installation guide](https://github.com/Galva-io/galva-android/blob/main/docs/installation.md#using-a-local-build-of-the-sdk). Either way, the app also needs the `galva-sdk` version that `galva-revenuecat` pins, in Maven Local or on GitHub Packages.
 
 ## License
 
