@@ -40,7 +40,7 @@ kotlin {
 
 dependencies {
     // All an app needs for Galva + RevenueCat: this brings in both SDKs.
-    implementation(project(":galva-revenuecat"))
+    implementation(project(":galva-android-revenuecat"))
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 }

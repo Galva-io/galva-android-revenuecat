@@ -42,6 +42,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "galva-android-revenuecat"
 
-include(":galva-revenuecat")
-// Demo app: RevenueCat + Galva wired together (see README, "Demo app").
+include(":galva-android-revenuecat")
+// Demo app: RevenueCat + Galva wired together (see CONTRIBUTING.md).
 include(":app")

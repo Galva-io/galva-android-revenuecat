@@ -49,7 +49,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
 }
 
-// io.galva.sdk:galva-revenuecat:<VERSION_NAME>: `publishToMavenLocal` puts it in ~/.m2,
+// io.galva.sdk:galva-android-revenuecat:<VERSION_NAME>: `publishToMavenLocal` puts it in ~/.m2,
 // `publishReleasePublicationToGitHubPackagesRepository` on this repository's GitHub Packages.
 publishing {
     repositories {
@@ -67,7 +67,7 @@ publishing {
     }
     publications {
         register<MavenPublication>("release") {
-            artifactId = "galva-revenuecat"
+            artifactId = "galva-android-revenuecat"
             // AGP creates the "release" component once the project is evaluated.
             afterEvaluate { from(components["release"]) }
             pom {
