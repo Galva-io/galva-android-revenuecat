@@ -29,6 +29,8 @@ internal class CustomerSync(
                 "(purchasesAreCompletedBy=${if (revenueCat.appCompletesPurchases) "MY_APP" else "REVENUECAT"}, " +
                 "identity=${if (state.followsRevenueCatIdentity) "FOLLOW_REVENUECAT" else "MANUAL"})"
         }
+        // A logOut made offline in an earlier launch left Galva on the previous user.
+        state.seed(galva.identifiedUserId)
         // Foregrounds keep re-attaching to RevenueCat's listener, in case the app replaced it.
         revenueCat.customerUpdates(foregrounds.events).collect(::apply)
     }
@@ -66,6 +68,11 @@ internal class CustomerSync(
             is SyncAction.SetAttributes -> {
                 logger.debug { "updating RevenueCat attributes (activeEntitlements=${action.attributes.activeEntitlements})" }
                 galva.setAttributes(action.attributes)
+            }
+
+            SyncAction.ReconcileTransactions -> {
+                logger.debug { "RevenueCat reported a new purchase; reporting it to Galva" }
+                galva.reconcileTransactions()
             }
         }
     }

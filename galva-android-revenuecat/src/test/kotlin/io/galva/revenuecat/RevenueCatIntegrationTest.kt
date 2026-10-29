@@ -58,6 +58,41 @@ class RevenueCatIntegrationTest {
     }
 
     @Test
+    fun `a logOut made offline before a relaunch still logs Galva out, so the next user gets a fresh identity`() = runTest {
+        // RevenueCat reported nothing for the offline logOut: Galva still has user_42 at launch.
+        galva.identifiedUserId = "user_42"
+        val scope = install()
+
+        revenueCat.customers.emit(customer("\$RCAnonymousID:new", isAnonymous = true))
+        revenueCat.customers.emit(customer("user_7", originalAppUserId = "\$RCAnonymousID:new"))
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(
+                "setPurchaseController",
+                "logout",
+                "attributes(\$RCAnonymousID:new,\$RCAnonymousID:new,[])",
+                "identify(user_7)",
+                "attributes(user_7,\$RCAnonymousID:new,[])",
+            ),
+            galva.calls,
+        )
+        scope.cancel()
+    }
+
+    @Test
+    fun `a purchase RevenueCat reports is reconciled in Galva`() = runTest {
+        val scope = install()
+
+        revenueCat.customers.emit(customer("user_42"))
+        revenueCat.customers.emit(customer("user_42", entitlements = listOf("pro"), purchases = mapOf("pro:monthly" to 1_000)))
+        advanceUntilIdle()
+
+        assertEquals("reconcileTransactions", galva.calls.last())
+        scope.cancel()
+    }
+
+    @Test
     fun `manual identity leaves identify and logout to the app`() = runTest {
         val scope = install(RevenueCatIdentity.MANUAL)
 

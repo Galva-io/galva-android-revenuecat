@@ -80,6 +80,70 @@ class SyncDecisionsTest {
     }
 
     @Test
+    fun `a logOut made offline in an earlier launch logs Galva out on the next one`() {
+        val state = SyncState(followsRevenueCatIdentity = true)
+        state.seed("x") // Galva still has the previous user
+
+        val launch = state.apply(customer("\$RCAnonymousID:new", isAnonymous = true))
+        val nextLogIn = state.apply(customer("y"))
+
+        assertEquals(listOf(SyncAction.Logout, attributes("\$RCAnonymousID:new")), launch)
+        // A fresh Galva identity: y never inherits x's anonymous id or obfuscated account id.
+        assertEquals(listOf(SyncAction.Identify("y"), attributes("y")), nextLogIn)
+    }
+
+    @Test
+    fun `a launch as another RevenueCat user than Galva's switches users`() {
+        val state = SyncState(followsRevenueCatIdentity = true)
+        state.seed("x")
+
+        assertEquals(listOf(SyncAction.Logout, SyncAction.Identify("y"), attributes("y")), state.apply(customer("y")))
+    }
+
+    @Test
+    fun `a launch as the same user doesn't identify again`() {
+        val state = SyncState(followsRevenueCatIdentity = true)
+        state.seed("x")
+
+        assertEquals(listOf(attributes("x")), state.apply(customer("x")))
+    }
+
+    @Test
+    fun `manual identity ignores the seed`() {
+        val state = SyncState(followsRevenueCatIdentity = false)
+        state.seed("x")
+
+        assertEquals(listOf(attributes("\$RCAnonymousID:a")), state.apply(customer("\$RCAnonymousID:a", isAnonymous = true)))
+    }
+
+    @Test
+    fun `a new purchase or a renewal reconciles transactions, the first update is the baseline`() {
+        val state = SyncState(followsRevenueCatIdentity = true)
+
+        val baseline = state.apply(customer("x", purchases = mapOf("pro" to 1)))
+        val newProduct = state.apply(customer("x", purchases = mapOf("pro" to 1, "plus" to 5)))
+        val renewal = state.apply(customer("x", purchases = mapOf("pro" to 9, "plus" to 5)))
+        val unchanged = state.apply(customer("x", purchases = mapOf("pro" to 9, "plus" to 5)))
+
+        assertEquals(false, SyncAction.ReconcileTransactions in baseline)
+        assertEquals(listOf(SyncAction.ReconcileTransactions), newProduct)
+        assertEquals(listOf(SyncAction.ReconcileTransactions), renewal)
+        assertEquals(emptyList<SyncAction>(), unchanged)
+    }
+
+    @Test
+    fun `purchases disappearing on logout don't reconcile, and reconcile comes after identity changes`() {
+        val state = SyncState(followsRevenueCatIdentity = true)
+        state.apply(customer("x", purchases = mapOf("pro" to 1)))
+
+        val logout = state.apply(customer("\$RCAnonymousID:a", isAnonymous = true))
+        val logIn = state.apply(customer("y", purchases = mapOf("plus" to 2)))
+
+        assertEquals(listOf(SyncAction.Logout, attributes("\$RCAnonymousID:a")), logout)
+        assertEquals(listOf(SyncAction.Identify("y"), attributes("y"), SyncAction.ReconcileTransactions), logIn)
+    }
+
+    @Test
     fun `manual identity never identifies or logs out`() {
         val state = SyncState(followsRevenueCatIdentity = false)
 

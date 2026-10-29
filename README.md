@@ -124,5 +124,6 @@ Galva also needs RevenueCat's subscription events. In Galva, open **Admin → Se
 
 - Your own `UpdatedCustomerInfoListener` keeps receiving every update: the integration chains onto it.
 - The integration runs message purchases itself, so don't call `Galva.instance.setPurchaseController`.
+- Purchases RevenueCat reports, your own paywall's included, reach Galva right away: there is no `Galva.instance.reconcileTransactions()` to call.
 
 Working on this package: see [CONTRIBUTING.md](CONTRIBUTING.md). License: MIT, see [LICENSE](LICENSE).

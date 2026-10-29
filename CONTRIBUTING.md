@@ -71,6 +71,8 @@ A missing key doesn't fail the build; the status panel shows which SDK isn't con
 | Logged out, back to anonymous | `logout()` |
 | Anonymous the whole time | Nothing |
 
+At launch the sync starts from the user Galva is identified as. RevenueCat reports nothing for a `logOut` made offline, so the next launch can find RevenueCat anonymous while Galva still has the previous user: that is applied as a logout, so the next `logIn` gets a fresh Galva identity instead of the previous user's anonymous id and obfuscated account id.
+
 **Purchases from Galva's messages**
 
 | RevenueCat `purchasesAreCompletedBy` | What runs |
@@ -79,8 +81,10 @@ A missing key doesn't fail the build; the status panel shows which SDK isn't con
 | `MY_APP` | Galva's Play Billing purchase, then `syncPurchases()` |
 | RevenueCat not configured yet | Galva's Play Billing purchase |
 
+**Transactions:** a product bought, or bought again (a renewal), since the previous `CustomerInfo` update calls `Galva.instance.reconcileTransactions()`, after any identity change. The first update after launch is the baseline; Galva's own sweep covers app entry.
+
 **Attributes** kept on the Galva user: `$gv_rc_appUserId`, `$gv_rc_originalAppUserId`, `$gv_rc_activeEntitlements`.
 
-**Differences from iOS:** no shared purchase token (RevenueCat attaches `Base64(SHA-256(appUserID))` as Play's `obfuscatedAccountId`, so Galva links purchases through RevenueCat's webhook and `$gv_rc_appUserId`); every offer goes through RevenueCat; no transaction reconciliation call.
+**Differences from iOS:** no shared purchase token (RevenueCat attaches `Base64(SHA-256(appUserID))` as Play's `obfuscatedAccountId`, so Galva links purchases through RevenueCat's webhook, `$gv_rc_appUserId` and `reconcileTransactions()`); every offer goes through RevenueCat.
 
 The sync runs on Galva's background coroutines; its log lines carry a `[revenuecat]` prefix.

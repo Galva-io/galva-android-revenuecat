@@ -9,9 +9,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import java.util.concurrent.CopyOnWriteArrayList
 
-internal class RecordingGalva : GalvaAdapter {
+internal class RecordingGalva(override var identifiedUserId: String? = null) : GalvaAdapter {
     val calls = CopyOnWriteArrayList<String>()
     var controller: GalvaPurchaseController? = null
+
+    override fun reconcileTransactions() {
+        calls += "reconcileTransactions"
+    }
 
     override fun identify(userId: String) {
         calls += "identify($userId)"
@@ -72,7 +76,8 @@ internal fun customer(
     isAnonymous: Boolean = false,
     originalAppUserId: String = appUserId,
     entitlements: List<String> = emptyList(),
-) = RevenueCatCustomer(appUserId, isAnonymous, originalAppUserId, entitlements)
+    purchases: Map<String, Long> = emptyMap(),
+) = RevenueCatCustomer(appUserId, isAnonymous, originalAppUserId, entitlements, purchases)
 
 /** A message's purchase request whose built-in Play flow returns [playBilling] and counts its runs. */
 internal class PlayBillingStub(private val playBilling: suspend () -> GalvaPurchaseResult) {

@@ -153,6 +153,9 @@ internal class LiveRevenueCatAdapter : RevenueCatAdapter {
             isAnonymous = purchases.isAnonymous,
             originalAppUserId = originalAppUserId,
             activeEntitlements = entitlements.active.keys.sorted(),
+            latestPurchaseTimes = allPurchaseDatesByProduct.entries
+                .mapNotNull { (product, date) -> date?.let { product to it.time } }
+                .toMap(),
         )
 
         fun StoreTransaction.toGalvaTransaction(productId: String) = GalvaTransaction(
