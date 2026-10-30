@@ -55,6 +55,14 @@ jobs:
             exit 1
           fi
 
+      - name: Check the signing key
+        shell: bash
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: bash .github/scripts/check-signing-key.sh
+
       - name: Read the version
         id: version
         shell: bash
@@ -74,9 +82,11 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
         run: |
+          # A pasted secret often ends in a newline, which Gradle can't parse as a key ID.
+          export ORG_GRADLE_PROJECT_signingInMemoryKeyId="$(printf '%s' "$SIGNING_KEY_ID" | tr -d '[:space:]')"
           if [[ "$VERSION_NAME" == *-SNAPSHOT ]]; then
             task=publishToMavenCentral
           else
