@@ -23,19 +23,12 @@ dependencyResolutionManagement {
         }
         google()
         mavenCentral()
-        // Galva's artifacts, as in galva-android's docs/installation.md.
+        // galva-sdk -SNAPSHOT builds, for pinning a galva-android version that isn't released yet.
         maven {
-            name = "GalvaGitHubPackages"
-            url = uri("https://maven.pkg.github.com/Galva-io/galva-android")
-            credentials {
-                username = providers.gradleProperty("gpr.user")
-                    .orElse(providers.environmentVariable("GPR_USER")).orNull
-                // gpr.key as in the installation guide; gpr.token as galva-android's publishing uses.
-                password = providers.gradleProperty("gpr.key")
-                    .orElse(providers.gradleProperty("gpr.token"))
-                    .orElse(providers.environmentVariable("GPR_KEY")).orNull
-            }
+            name = "CentralPortalSnapshots"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
             content { includeGroup("io.galva.sdk") }
+            mavenContent { snapshotsOnly() }
         }
     }
 }

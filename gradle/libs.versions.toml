@@ -2,7 +2,7 @@
 agp = "9.0.0"
 kotlin = "2.2.10"
 # Exact: this integration builds on Galva's integration API, so it pins the release it was tested with.
-galva = "1.3.0-SNAPSHOT"
+galva = "1.3.0"
 # Any 10.x: 10.0.0 is the first on Play Billing 8, which Galva requires, and 11 is an untested major.
 # An app's own 10.x is shared as is; an older one is raised to the latest 10.x; 11+ fails the build
 # unless the app declares it strictly. A range, not 10.+, which would raise every app to the latest 10.x.
@@ -13,6 +13,7 @@ androidxActivity = "1.8.0"
 junit = "4.13.2"
 robolectric = "4.16.1"
 mockito = "6.3.0"
+vanniktech = "0.36.0"
 
 [libraries]
 galva-sdk = { group = "io.galva.sdk", name = "galva-sdk", version.ref = "galva" }
@@ -29,3 +30,4 @@ mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", versio
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
+vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech" }

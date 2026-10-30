@@ -1,6 +1,10 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.DeploymentValidation
+import org.gradle.plugins.signing.SigningExtension
+
 plugins {
     alias(libs.plugins.android.library)
-    `maven-publish`
+    alias(libs.plugins.vanniktech.maven.publish)
 }
 
 group = property("GROUP") as String
@@ -19,11 +23,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     testOptions.unitTests.isReturnDefaultValues = true
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
-    }
 }
 
 kotlin {
@@ -49,42 +48,44 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
 }
 
-// io.galva.sdk:galva-android-revenuecat:<VERSION_NAME>: `publishToMavenLocal` puts it in ~/.m2,
-// `publishReleasePublicationToGitHubPackagesRepository` on this repository's GitHub Packages.
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/Galva-io/galva-android-revenuecat")
-            // Same credentials as galva-android's publishing: a token with write:packages.
-            credentials {
-                username = providers.gradleProperty("gpr.user")
-                    .orElse(providers.environmentVariable("GITHUB_ACTOR")).orNull
-                password = providers.gradleProperty("gpr.token")
-                    .orElse(providers.environmentVariable("GITHUB_TOKEN")).orNull
+// io.galva.sdk:galva-android-revenuecat:<VERSION_NAME>, signed, as galva-android publishes galva-sdk:
+// `publishToMavenCentral` uploads it to Maven Central (a -SNAPSHOT to Central's snapshot repository),
+// `publishToMavenLocal` puts it in ~/.m2. Credentials and the signing key come from the
+// mavenCentralUsername / mavenCentralPassword / signingInMemoryKey* Gradle properties.
+mavenPublishing {
+    configure(AndroidSingleVariantLibrary(variant = "release"))
+    publishToMavenCentral(validateDeployment = DeploymentValidation.PUBLISHED)
+    signAllPublications()
+    // Only Maven Central needs signed artifacts: publishToMavenLocal also works on a machine
+    // without the signing key, and still signs where the key is set.
+    extensions.configure<SigningExtension> {
+        isRequired = gradle.startParameter.taskNames.any { it.contains("MavenCentral", ignoreCase = true) }
+    }
+    coordinates(property("GROUP") as String, "galva-android-revenuecat", property("VERSION_NAME") as String)
+
+    pom {
+        name.set("Galva RevenueCat")
+        description.set("Connects the Galva Android SDK to RevenueCat.")
+        url.set("https://github.com/Galva-io/galva-android-revenuecat")
+        inceptionYear.set("2026")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("repo")
             }
         }
-    }
-    publications {
-        register<MavenPublication>("release") {
-            artifactId = "galva-android-revenuecat"
-            // AGP creates the "release" component once the project is evaluated.
-            afterEvaluate { from(components["release"]) }
-            pom {
-                name.set("Galva RevenueCat")
-                description.set("Connects the Galva Android SDK to RevenueCat.")
-                url.set("https://github.com/Galva-io/galva-android-revenuecat")
-                licenses {
-                    license {
-                        name.set("MIT")
-                        url.set("https://github.com/Galva-io/galva-android-revenuecat/blob/main/LICENSE")
-                    }
-                }
-                scm {
-                    url.set("https://github.com/Galva-io/galva-android-revenuecat")
-                    connection.set("scm:git:https://github.com/Galva-io/galva-android-revenuecat.git")
-                }
+        developers {
+            developer {
+                id.set("linhttbk97")
+                name.set("LinhTT")
+                email.set("tailinh@unstatic.co")
             }
+        }
+        scm {
+            url.set("https://github.com/Galva-io/galva-android-revenuecat")
+            connection.set("scm:git:git://github.com/Galva-io/galva-android-revenuecat.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Galva-io/galva-android-revenuecat.git")
         }
     }
 }
