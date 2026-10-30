@@ -12,34 +12,13 @@ Use the [Galva Android SDK](https://github.com/Galva-io/galva-android) in an app
 
 ## 1. Install
 
-The package is on GitHub Packages, next to the Galva SDK. Both need a GitHub username and a [personal access token (classic)](https://github.com/settings/tokens) with the `read:packages` scope, in your user-level `~/.gradle/gradle.properties`:
-
-```properties
-gpr.user=your-github-username
-gpr.key=ghp_xxxxxxxxxxxxxxxxxxxx
-```
-
-Add both repositories in `settings.gradle.kts`:
+The package is on [Maven Central](https://central.sonatype.com/artifact/io.galva.sdk/galva-android-revenuecat), like the Galva SDK, so it needs no extra repository or credentials. Check that your `settings.gradle.kts` lists `mavenCentral()`, as new Android projects do:
 
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/Galva-io/galva-android")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                password = providers.gradleProperty("gpr.key").orNull
-            }
-        }
-        maven {
-            url = uri("https://maven.pkg.github.com/Galva-io/galva-android-revenuecat")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                password = providers.gradleProperty("gpr.key").orNull
-            }
-        }
     }
 }
 ```
@@ -48,7 +27,7 @@ Add the dependency in `app/build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.galva.sdk:galva-android-revenuecat:1.0.0-SNAPSHOT")
+    implementation("io.galva.sdk:galva-android-revenuecat:1.0.0")
 }
 ```
 

@@ -16,7 +16,7 @@ How the package is built, tested and published. App developers only need the [RE
 ./gradlew :app:assembleDebug
 ```
 
-`galva-sdk` comes from Galva's GitHub Packages repository: set `gpr.user` and `gpr.key` in `~/.gradle/gradle.properties`, or `GPR_USER` and `GPR_KEY` in the environment.
+`galva-sdk` comes from Maven Central, or from Central's snapshot repository when the pinned version is a `-SNAPSHOT`. No credentials are needed.
 
 To build against a galva-android change that isn't published yet, publish it locally and turn Maven Local on, with `-Pgalva.mavenLocal` or, so Android Studio's sync sees it too, `galva.mavenLocal=true` in the git-ignored `local.properties`:
 
@@ -35,15 +35,23 @@ The `galva` version in `gradle/libs.versions.toml` must match galva-android's `V
 
 ## Publish
 
-```bash
-# This repository's GitHub Packages; needs gpr.user / gpr.token with write:packages
-./gradlew :galva-android-revenuecat:publishReleasePublicationToGitHubPackagesRepository
+1. Set `VERSION_NAME` in `gradle.properties` (`-SNAPSHOT` for pre-releases).
+2. Merge to `main`. The `Publish to Maven Central` workflow runs the unit tests, then signs and publishes the package: a `-SNAPSHOT` version to Central's snapshot repository, any other version as a release, which the job waits on until it is published. The workflow can also be started by hand from the Actions tab.
 
-# ~/.m2
-./gradlew :galva-android-revenuecat:publishToMavenLocal
-```
+- A release on Maven Central can't be deleted or replaced: bump `VERSION_NAME` before merging the next one.
+- Release only once the pinned `galva-sdk` is released on Maven Central; apps can't resolve the package otherwise.
+- Publishing a `-SNAPSHOT` needs snapshots enabled for the `io.galva.sdk` namespace in the Central Portal (Namespaces → Enable SNAPSHOTs).
 
-The pinned `galva-sdk` must be on GitHub Packages before apps can resolve a published build.
+The workflow needs the same repository secrets as galva-android's:
+
+| Secret | Value |
+|---|---|
+| `SONATYPE_USERNAME`, `SONATYPE_PASSWORD` | A Central Portal user token (Account → Generate User Token), not the portal login |
+| `SIGNING_KEY` | The ASCII-armored GPG private key that signs the artifacts |
+| `SIGNING_KEY_ID` | Its key ID |
+| `SIGNING_KEY_PASSWORD` | Its passphrase |
+
+To try a build in an app first, publish it to `~/.m2` with `./gradlew :galva-android-revenuecat:publishToMavenLocal` (add `-Pgalva.mavenLocal` to build against a local galva-sdk). It needs no signing key; only Maven Central does.
 
 ## Demo app
 
