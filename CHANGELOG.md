@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+- Builds on Galva Android SDK `galva-sdk` **1.5.2** (was 1.5.1).
+- **Fixes in-app messages not shown with `autoDisplayInAppMessages = true`** when `Galva.configure` runs after an activity is already resumed. The SDK only learned of an activity from `onActivityResumed` after `configure`, so it logged `In-app message <id> not shown — no visible activity` until the user left the app and came back. galva-sdk 1.5.2 uses the activity passed to `configure` when that activity is resumed. Apps that configure in `Application.onCreate`, as the README shows, weren't affected.
+- No API changes.
+
 ## 1.0.1
 
 - Builds on Galva Android SDK `galva-sdk` **1.5.1** (was 1.3.0).

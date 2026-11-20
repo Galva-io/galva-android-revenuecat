@@ -27,7 +27,7 @@ Add the dependency in `app/build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.galva.sdk:galva-android-revenuecat:1.0.1")
+    implementation("io.galva.sdk:galva-android-revenuecat:1.0.2")
 }
 ```
 
